@@ -1,25 +1,4 @@
-/**
- * MVP 1
- * 
- * Routes
- *  - "/": redirect to spotify login page
- *  - "/callback": accepts spotify auth code
- *    - requests access, refresh tokens
- *    - make api calls to update playlist
- */
-
-/**
- * MVP 2
- * 
- * Routes
- *  - "/": homepage; if not logged in (no valid jwt):
- *    - redirect to spotify login page
- *  - "/callback": accepts spotify auth code
- *    - requests access, refresh tokens
- *    - returns user to homepage with jwt in cookie
- */
-
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import express from 'express';
 import session from 'express-session';
 import consolidate from "consolidate";
@@ -29,10 +8,21 @@ import { Strategy as SpotifyStrategy } from "passport-spotify";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+import { downloadImage } from './util';
+import {
+  createPlaylist,
+  getPlaylist,
+  getPlaylistDuration,
+  getPlaylists,
+  getRecentlyLikedTracks,
+  getTrackDuration,
+  replacePlaylistTracks,
+  putPlaylistImage
+} from './util/spotify';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
  
-const SPOTIFY_API = "https://api.spotify.com/v1";
 const SPOTIFY_IMAGE_SIZE = 300;
 const scope = [
   "user-library-read",
@@ -42,14 +32,6 @@ const scope = [
   "playlist-modify-private",
   "ugc-image-upload"
 ];
-
-const downloadImage = (url: string) => {
-  return axios
-    .get(url, {
-      responseType: 'arraybuffer'
-    })
-    .then(response => Buffer.from(response.data, 'binary'));
-}
 
 const configurePassport = () => {
   // Passport session setup.
@@ -75,23 +57,20 @@ const configurePassport = () => {
         callbackURL: `${process.env.HOST}/auth/spotify/callback`,
         passReqToCallback: true
       },
-      (_req, accessToken, refreshToken, expires_in, profile, done, ) => {
-        console.log("Passport | ", profile.id, profile.displayName);
+      (req, accessToken, refreshToken, expires_in, profile, done, ) => {
         return done(null, { ...profile, auth: { accessToken, refreshToken, expires_in } });
       }
     )
   );
 };
 
+
+
 const updatePlaylistImage = async (user, playlistId: string): Promise<string | null> => {
   const { auth, displayName, id } = user;
 
   console.log(`Updating playlist image for user [${id}] "${displayName}" - playlist [${playlistId}]`);
 
-  const headers = {
-    "Authorization": `Bearer ${auth.accessToken}`,
-    "Content-Type": "image/jpeg"
-  };
 
   try {
     // Request Shibe image location
@@ -101,10 +80,10 @@ const updatePlaylistImage = async (user, playlistId: string): Promise<string | n
     // Download image, convert to base 64
     let buffer = await downloadImage(url);
     buffer = await sharp(buffer).resize(SPOTIFY_IMAGE_SIZE, SPOTIFY_IMAGE_SIZE).jpeg().toBuffer();
-    const image = buffer.toString("base64");
+    const image: string = buffer.toString("base64");
     
     // Upload image
-    await axios.put( `${SPOTIFY_API}/playlists/${playlistId}/images`, image, { headers });
+    await putPlaylistImage(auth.accessToken, playlistId, image);
   
     return image;
   } catch (e: any) {
@@ -121,96 +100,38 @@ const updatePlaylistImage = async (user, playlistId: string): Promise<string | n
 const updatePlaylist = async (user, options) => {
   const { auth, displayName, id } = user;
   const { name, size } = options;
-
-  const headers = {
-    "Authorization": `Bearer ${auth.accessToken}`,
-    "Content-Type": "application/json"
-  };
+  const { accessToken } = auth;
 
   try {
-    // Get user playlists
-    let remaining = 1;
-    let offset = 0;
-    const limit = 50;
-    const playlists: any = [];
-    while (remaining !== 0) {
-      const { data: playlistsData } = await axios.get(`${SPOTIFY_API}/users/${id}/playlists?limit=${limit}&offset=${offset}`, { headers });
-      const { items, total } = playlistsData;
-
-      playlists.push(...items);
-      
-      const current = offset + limit;
-      remaining = total > current
-        ? total - current
-        : 0;
-      offset += limit;
-    }
-
-    // Get recently liked tracks
-    remaining = 1;
-    offset = 0;
-    const tracks: any = [];
-    while (remaining !== 0) {
-      const { data: tracksData } = await axios.get(`${SPOTIFY_API}/me/tracks?limit=${limit}&offset=${offset}`, { headers });
-      const { items } = tracksData;
-
-      tracks.push(...items.map(({ track }) => track));
-      
-      const current = offset + limit;
-      remaining = size > current
-        ? size - current
-        : 0;
-      offset += limit;
-    }
-    tracks.splice(size);
-
-  
-    // Find recently liked playlist
+    const playlists = await getPlaylists(accessToken, id);
+    const tracks = await getRecentlyLikedTracks(accessToken, size);
     let playlist = playlists.find((playlist) => playlist.name === name);
   
-    // Create playlist if does not exist
     if (!playlist) {
       console.log(`Creating playlist for user [${id}] "${displayName}" - playlist [${playlist.id}] "${playlist.name}"`);
-      const body = {
-        name,
-        description: "your recently liked bananas",
-        public: true
-      }
-      const { data: playlistData } = await axios.post(`${SPOTIFY_API}/users/${id}/playlists`, body, { headers });
-      playlist = playlistData;
+      playlist = await createPlaylist(accessToken, id, name);
     }
     
     console.log(`Updating playlist for user [${id}] "${displayName}" - playlist [${playlist.id}] "${playlist.name}"`);
-    
-    // Replace all items in playlist
-    const uris = tracks.map(({ uri }) => uri);
-    await axios.put(`${SPOTIFY_API}/playlists/${playlist.id}/tracks`, { uris }, { headers });
+    await replacePlaylistTracks(accessToken, playlist.id, tracks.map(({ uri }) => uri));
 
-    // Get modified playlist
-    const { data: playlistData } = await axios.get(`${SPOTIFY_API}/users/${id}/playlists/${playlist.id}`, { headers });
+    playlist = await getPlaylist(accessToken, id, playlist.id);
 
-    // Get playlist length
-    const ms = playlistData.tracks.items.reduce((acc, e) => (acc + e.track.duration_ms), 0);
-    const mins = ms / 60000;
-    const duration = { hrs: Math.floor(mins / 60), mins: Math.floor(mins % 60) };
+    const duration = getPlaylistDuration(playlist);
 
-    playlistData.tracks.items = playlistData.tracks.items.map((item) => {
+    playlist.tracks.items = playlist.tracks.items.map((item) => {
       const { track } = item;
-      const duration_s = track.duration_ms / 1000;
-      const mins = Math.floor(duration_s / 60);
-      const secs = Math.floor(duration_s % 60);
-      const duration_str = `${mins}:${`${secs}`.padStart(2, '0')}`;
+      const duration = getTrackDuration(track);
       return {
         ...item,
         track: {
           ...track,
-          duration_str
+          duration
         }
       };
     });
 
-    console.log(user)
-    return { ...playlistData, duration };
+    return { ...playlist, duration };
 
   } catch (e: any) {
     let msg = e;
@@ -232,7 +153,7 @@ const createServer = () => {
   app.use(express.static(__dirname));
   app.engine('html', consolidate.nunjucks);
   
-  // Configure login sessions
+  // Configure user sessions
   app.use(
     session({
       secret: process.env.SECRET_SESSION,
@@ -241,35 +162,28 @@ const createServer = () => {
     })
   );
 
+  // Configure passport - auth
   configurePassport();
   app.use(passport.initialize());
   app.use(passport.session());
 
   // Middleware - Log
-  app.use((req, _res, next) => {
-    console.log('Request:', req.method, req.path);
+  app.use((req, res, next) => {
     next();
   });
 
   // Route - Home
-  app.get('/', (req, res) => {
-    res.redirect('/auth/spotify');
-    return;
-    res.render('index.html', { user: req.user });
-  });
-
-  // Route - Done
-  app.get('/done', async (req, res) => {
+  app.get('/', async (req, res) => {
     const { user } = req;
-
+    
     if (!user) {
-      res.redirect('/');
+      res.render('index.html', { user: req.user });
       return;
     };
-
+  
     const playlist = await updatePlaylist(user, { name: "recently liked tracks", size: 100 });
     const img = await updatePlaylistImage(user, playlist.id);
-
+  
     res.render('done.html', { img: `data:image/png;base64,${img}`, playlist, user });
   });
 
@@ -289,20 +203,19 @@ const createServer = () => {
   app.get(
     '/auth/spotify/callback',
     passport.authenticate('spotify', { failureRedirect: '/fail' }),
-    (_req, res) => {
-      res.redirect('/done');
+    (req, res) => {
+      res.redirect('/');
     }
   );
 
   return app;
 }
  
-console.log(`Launching shibefy backend (${process.env.NODE_ENV || "development"})`)
-console.log(`- ID:        ${process.env.SECRET_SPOTIFY_CLIENT_ID}`)
-console.log(`- Secret:    ${process.env.SECRET_SPOTIFY_CLIENT_SECRET}`)
-console.log(`- Callback:  ${`${process.env.HOST}/auth/spotify/callback`}`)
+console.log(`Launching shibefy backend (${process.env.NODE_ENV || "development"})`);
+
  const app = createServer();
+ const port = process.env.PORT || 8888;
  
- console.log("Service launched, listening on port 8888");
- app.listen(process.env.PORT || 8888);
+ console.log("Service launched, listening on port", port);
+ app.listen(port);
  

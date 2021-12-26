@@ -142,13 +142,6 @@ header > img {
 
 .playlists {
   padding: 16px;
-  overflow-y: scroll;
-
-  -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  scrollbar-width: none;  /* Firefox */
-}
-.playlists::-webkit-scrollbar { 
-  display: none;  /* Safari and Chrome */
 }
 
 .playlists a, p {
