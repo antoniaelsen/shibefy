@@ -194,11 +194,31 @@ const updatePlaylist = async (user, options) => {
     const mins = ms / 60000;
     const duration = { hrs: Math.floor(mins / 60), mins: Math.floor(mins % 60) };
 
+    playlistData.tracks.items = playlistData.tracks.items.map((item) => {
+      const { track } = item;
+      const duration_s = track.duration_ms / 1000;
+      const mins = Math.floor(duration_s / 60);
+      const secs = Math.floor(duration_s % 60);
+      const duration_str = `${mins}:${`${secs}`.padStart(2, '0')}`;
+      return {
+        ...item,
+        track: {
+          ...track,
+          duration_str
+        }
+      };
+    });
+
+    console.log(user)
     return { ...playlistData, duration };
 
   } catch (e: any) {
-    const { data, status, statusText } = e.response;
-    console.log(`Failed to update user "${displayName}" [${id}] spotify - ${status}: "${statusText}"`, data);
+    let msg = e;
+    if (e.response) {
+      const { data, status, statusText } = e.response;
+      msg = `${status}: "${statusText}" ${data}`;
+    }
+    console.log(`Failed to update user "${displayName}" [${id}] spotify - ${msg}`);
     return null;
   }
 };
@@ -233,6 +253,8 @@ const createServer = () => {
 
   // Route - Home
   app.get('/', (req, res) => {
+    res.redirect('/auth/spotify');
+    return;
     res.render('index.html', { user: req.user });
   });
 
@@ -257,7 +279,7 @@ const createServer = () => {
     '/auth/spotify',
     passport.authenticate('spotify', {
       scope,
-      showDialog: true
+      // showDialog: true
     }),
   );
   
@@ -276,6 +298,9 @@ const createServer = () => {
 }
  
 console.log(`Launching shibefy backend (${process.env.NODE_ENV || "development"})`)
+console.log(`- ID:        ${process.env.SECRET_SPOTIFY_CLIENT_ID}`)
+console.log(`- Secret:    ${process.env.SECRET_SPOTIFY_CLIENT_SECRET}`)
+console.log(`- Callback:  ${`${process.env.HOST}/auth/spotify/callback`}`)
  const app = createServer();
  
  console.log("Service launched, listening on port 8888");
