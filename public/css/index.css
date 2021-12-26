@@ -50,22 +50,22 @@ button {
   padding: 16px 48px 18px;
 }
 
-button.login {
+.btn-login {
   color: #fff;
   background-color: #1db954;
 }
 
-button.login:hover {
+.btn-login:hover {
   background-color: #1ed760;
 }
 
-button.shibe {
+.btn-shibe {
   position: fixed;
   right: 16px;
   top: 16px
 }
 
-button.shibe:hover {
+.btn-shibe:hover {
   color: #fff;
   animation: rainbow-background-color 2.5s linear;
   animation-iteration-count: infinite;
@@ -93,13 +93,20 @@ header > img {
   height: 100%;
 }
 
-.container-login {
+section.login {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
+}
+
+section.login p {
+  color: #fff;
+  text-align: center;
+  font-size: 18px;
+  margin: 24px;
 }
 
 .header-text {
