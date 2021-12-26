@@ -1,8 +1,23 @@
 {% extends 'layout.html' %} {% block content %}
-<p>ID: {{ user.id }}</p>
-<div id="test">
+<div class="header">
   <img src="{{ img }}" alt="A random image of a Shiba Inu">
-  <a href="{{ user.profileUrl }}">{{ user.profileUrl }}</a>
-  <a href="{{ playlist.href }}">{{ playlist.name }}</a>
+
+  <div class="header-text">
+    <h1>PLAYLIST</h1>
+    <h2>
+      <a href="{{ playlist.href }}">{{ playlist.name }}</a>
+    </h2>
+
+    <p>{{playlist.description}}</p>
+
+    <div class="header-text-caption">
+      <a href="{{user.profileUrl}}">{{user.displayName}}</a>
+      <p>• {{playlist.tracks.items.length}} songs, {{ playlist.duration.hrs }} hr {{playlist.duration.mins }} min</p>
+    </div>
+  </div>
 </div>
+
+<div class="playlists">
+</div>
+  
 {% endblock %}

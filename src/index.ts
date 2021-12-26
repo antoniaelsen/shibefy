@@ -20,17 +20,14 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import fs from 'fs';
 import express from 'express';
 import session from 'express-session';
 import consolidate from "consolidate";
 import passport from 'passport';
 import sharp from 'sharp';
-import { config } from 'dotenv';
 import { Strategy as SpotifyStrategy } from "passport-spotify";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { url } from 'inspector';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -63,12 +60,10 @@ const configurePassport = () => {
   //   have a database of user records, the complete spotify profile is serialized
   //   and deserialized.
   passport.serializeUser((user, done) => {
-    console.log("Serializing user", user);
     done(null, user);
   });
   
   passport.deserializeUser((obj, done) => {
-    console.log("Deserializing user", obj);
     done(null, obj);
   });
 
@@ -80,7 +75,7 @@ const configurePassport = () => {
         callbackURL: `${process.env.HOST}/auth/spotify/callback`,
         passReqToCallback: true
       },
-      (req, accessToken, refreshToken, expires_in, profile, done, ) => {
+      (_req, accessToken, refreshToken, expires_in, profile, done, ) => {
         console.log("Passport | ", profile.id, profile.displayName);
         return done(null, { ...profile, auth: { accessToken, refreshToken, expires_in } });
       }
@@ -193,7 +188,13 @@ const updatePlaylist = async (user, options) => {
 
     // Get modified playlist
     const { data: playlistData } = await axios.get(`${SPOTIFY_API}/users/${id}/playlists/${playlist.id}`, { headers });
-    return playlistData;
+
+    // Get playlist length
+    const ms = playlistData.tracks.items.reduce((acc, e) => (acc + e.track.duration_ms), 0);
+    const mins = ms / 60000;
+    const duration = { hrs: Math.floor(mins / 60), mins: Math.floor(mins % 60) };
+
+    return { ...playlistData, duration };
 
   } catch (e: any) {
     const { data, status, statusText } = e.response;
@@ -202,12 +203,10 @@ const updatePlaylist = async (user, options) => {
   }
 };
 
-
- const createServer = () => {
+const createServer = () => {
   const app = express();
   
   // Configure express to serve .html in /views
-  console.log("dirname:", __dirname + "/public/html")
   app.set('views', __dirname + '/public/html');
   app.set('view engine', 'html');
   app.use(express.static(__dirname));
@@ -227,7 +226,7 @@ const updatePlaylist = async (user, options) => {
   app.use(passport.session());
 
   // Middleware - Log
-  app.use((req, res, next) => {
+  app.use((req, _res, next) => {
     console.log('Request:', req.method, req.path);
     next();
   });
@@ -249,7 +248,7 @@ const updatePlaylist = async (user, options) => {
     const playlist = await updatePlaylist(user, { name: "TEST APP", size: 100 });
     const img = await updatePlaylistImage(user, playlist.id);
 
-    res.render('done.html', { img, user });
+    res.render('done.html', { img: `data:image/png;base64,${img}`, playlist, user });
   });
 
   // Route - Spotify Login Page Redirect
@@ -258,7 +257,7 @@ const updatePlaylist = async (user, options) => {
     '/auth/spotify',
     passport.authenticate('spotify', {
       scope,
-      // showDialog: true
+      showDialog: true
     }),
   );
   
@@ -268,7 +267,7 @@ const updatePlaylist = async (user, options) => {
   app.get(
     '/auth/spotify/callback',
     passport.authenticate('spotify', { failureRedirect: '/fail' }),
-    (req, res) => {
+    (_req, res) => {
       res.redirect('/done');
     }
   );
@@ -276,8 +275,7 @@ const updatePlaylist = async (user, options) => {
   return app;
 }
  
-config();
-console.log(`Launching constellation.fm backend (${process.env.NODE_ENV || "development"}): [${process.env.SECRET_SPOTIFY_CLIENT_ID}]: ${process.env.SECRET_SPOTIFY_CLIENT_SECRET}`)
+console.log(`Launching constellation.fm backend (${process.env.NODE_ENV || "development"})`)
  const app = createServer();
  
  console.log("Service launched, listening on port 8888");

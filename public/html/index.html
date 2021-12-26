@@ -1,3 +1,7 @@
 {% extends 'layout.html' %} {% block content %}
-<a href="/auth/spotify">Login with Spotify</a>
+<div class="container">
+  <button class="login" onclick="window.location.href = '/auth/spotify';">
+    Login with Spotify
+  </button>
+</div>
 {% endblock %}

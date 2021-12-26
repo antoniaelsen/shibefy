@@ -6,9 +6,10 @@
   "type": "module",
   "scripts": {
     "build": "tsc && npm run build:static",
+    "clean": "rimraf dist/",
     "build:static": "cp -r public dist/",
-    "start": "nodemon --experimental-modules dist/index.js",
-    "watch:compile": "tsc -w --preserveWatchOutput",
+    "start": "env-cmd nodemon --experimental-modules dist/index.js",
+    "watch:compile": "nodemon --watch src --watch public -e ts,html,css --exec npm run build",
     "watch": "npm run build && concurrently \"npm run watch:compile\" \"npm run start\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,7 +25,6 @@
   "dependencies": {
     "axios": "^0.24.0",
     "consolidate": "^0.16.0",
-    "dotenv": "^10.0.0",
     "express": "^4.17.2",
     "express-session": "^1.17.2",
     "nunjucks": "^3.2.3",
