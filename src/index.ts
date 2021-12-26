@@ -245,7 +245,7 @@ const createServer = () => {
       return;
     };
 
-    const playlist = await updatePlaylist(user, { name: "TEST APP", size: 100 });
+    const playlist = await updatePlaylist(user, { name: "recently liked tracks", size: 100 });
     const img = await updatePlaylistImage(user, playlist.id);
 
     res.render('done.html', { img: `data:image/png;base64,${img}`, playlist, user });

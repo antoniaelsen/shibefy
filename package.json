@@ -8,9 +8,10 @@
     "build": "tsc && npm run build:static",
     "clean": "rimraf dist/",
     "build:static": "cp -r public dist/",
-    "start": "./node_modules/.bin/env-cmd nodemon --experimental-modules dist/index.js",
+    "start": "node dist/index.js",
+    "watch:start": "./node_modules/.bin/env-cmd nodemon --experimental-modules dist/index.js",
     "watch:compile": "nodemon --watch src --watch public -e ts,html,css --exec npm run build",
-    "watch": "npm run build && concurrently \"npm run watch:compile\" \"npm run start\"",
+    "watch": "npm run build && concurrently \"npm run watch:compile\" \"npm run watch:start\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
