@@ -275,9 +275,9 @@ const createServer = () => {
   return app;
 }
  
-console.log(`Launching constellation.fm backend (${process.env.NODE_ENV || "development"})`)
+console.log(`Launching shibefy backend (${process.env.NODE_ENV || "development"})`)
  const app = createServer();
  
  console.log("Service launched, listening on port 8888");
- app.listen(8888);
+ app.listen(process.env.PORT || 8888);
  
