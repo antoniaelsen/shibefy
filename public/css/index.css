@@ -93,6 +93,16 @@ header > img {
   height: 100%;
 }
 
+section.credit {
+  font-size: 12px;
+  align-self: center;
+  justify-self: flex-end;
+}
+
+section.credit p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
 section.login {
   display: flex;
   flex-flow: column nowrap;
