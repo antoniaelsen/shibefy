@@ -1,0 +1,14 @@
+{
+  "name": "shibefy",
+  "version": "2.0.0",
+  "private": true,
+  "dependencies": {
+  },
+  "scripts": {
+    "start": "cd backend && npm run start",
+    "build": "cd frontend && npm i && npm run build && cd ../backend && npm i && npm run build"
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0"
+  }
+}
