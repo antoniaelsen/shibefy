@@ -25,11 +25,10 @@
   },
   "dependencies": {
     "axios": "^0.24.0",
-    "consolidate": "^0.16.0",
+    "colors": "1.4.0",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "express-session": "^1.17.2",
-    "nunjucks": "^3.2.3",
     "passport": "^0.5.2",
     "passport-spotify": "^2.0.0",
     "sharp": "^0.29.3",
