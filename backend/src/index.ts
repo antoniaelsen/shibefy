@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response, Router } from 'express';
 import cors from 'cors';
 import fs from 'fs';
-import https from 'https';
+import http from 'http';
 import session from 'express-session';
 import passport from 'passport';
 import config from './config';
@@ -74,8 +74,8 @@ const createServer = () => {
     res.sendFile('index.html', { root: path.join(__dirname, '../../frontend/build/') });
   });
   
-  const httpsServer = https.createServer(credentials, app);
-  return httpsServer;
+  const httpServer = http.createServer(app);
+  return httpServer;
 }
  
 logger.info(`Launching shibefy backend (${process.env.NODE_ENV || "development"})`);
