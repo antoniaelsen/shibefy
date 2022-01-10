@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist/",
-    "start": "node --experimental-specifier-resolution=node dist/index.js",
+    "start": "env-cmd -f ./.env env-cmd -f ./.env.local node --experimental-specifier-resolution=node dist/index.js",
     "watch:start": "./node_modules/.bin/env-cmd nodemon --experimental-modules --experimental-specifier-resolution=node dist/index.js",
     "watch:compile": "nodemon --watch src -e ts,html,css --exec npm run build",
     "watch": "npm run build && concurrently \"npm run watch:compile\" \"npm run watch:start\"",

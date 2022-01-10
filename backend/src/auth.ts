@@ -82,14 +82,14 @@ const createAuthMiddleware = () => {
   const router = Router();
 
   router.get(
-    '/auth/spotify',
+    '/spotify',
     saveReturnTo,
     authenticate,
   );
 
   // TODO(aelsen): failure redirect
   router.get(
-    '/auth/spotify/callback',
+    '/spotify/callback',
     authenticate,
     redirectWithToken
   );

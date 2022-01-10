@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { NextFunction, Request, Response, Router } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import https from 'https';
@@ -8,6 +8,11 @@ import config from './config';
 import createAuthMiddleware from './auth';
 import createImageMiddleware from './image';
 import { logger } from "./util/logger";
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
  
 
 // TODO(aelsen): no implicit any
@@ -58,9 +63,17 @@ const createServer = () => {
     next();
   });
 
-  app.use(createAuthMiddleware());
-  app.use(createImageMiddleware());
+  
+  const router = Router();
+  router.use("/auth", createAuthMiddleware());
+  router.use("/shibe", createImageMiddleware());
+  app.use("/api", router);
 
+  app.use('/static', express.static(path.join(__dirname, '../../frontend/build/static')));
+  app.get('*', (req, res) => {
+    res.sendFile('index.html', { root: path.join(__dirname, '../../frontend/build/') });
+  });
+  
   const httpsServer = https.createServer(credentials, app);
   return httpsServer;
 }

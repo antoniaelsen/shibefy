@@ -16,7 +16,7 @@ const createImageMiddleware = () => {
   const router = Router();
 
   router.get(
-    '/shibe',
+    '/',
     async (req, res) => {
       const { data } = await axios.get("http://shibe.online/api/shibes");
       const url = data[0];
