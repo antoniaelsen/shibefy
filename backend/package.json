@@ -1,0 +1,43 @@
+{
+  "name": "shibefy-backend",
+  "version": "2.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist/",
+    "start": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run start:prod; elif [ \"$NODE_ENV\" = \"staging\" ]; then npm run start:staging; else npm run start:dev; fi",
+    "start:dev": "env-cmd -f ./.env env-cmd --silent -f ./.env.local node --experimental-specifier-resolution=node dist/index.js",
+    "start:staging": "env-cmd -f ./.env.staging node --experimental-specifier-resolution=node dist/index.js",
+    "start:prod": "env-cmd -f ./.env node --experimental-specifier-resolution=node dist/index.js",
+    "watch:start": "./node_modules/.bin/env-cmd nodemon --experimental-modules --experimental-specifier-resolution=node dist/index.js",
+    "watch:compile": "nodemon --watch src -e ts,html,css --exec npm run build",
+    "watch": "npm run build && concurrently \"npm run watch:compile\" \"npm run watch:start\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^6.5.1",
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.8",
+    "axios": "^0.24.0",
+    "colors": "1.4.0",
+    "cors": "^2.8.5",
+    "env-cmd": "^10.1.0",
+    "express": "^4.17.2",
+    "express-session": "^1.17.2",
+    "passport": "^0.5.2",
+    "passport-spotify": "^2.0.0",
+    "sharp": "^0.29.3",
+    "typescript": "^4.5.4",
+    "winston": "^3.3.3"
+  },
+  "engines": {
+    "node": "14.x"
+  }
+}

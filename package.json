@@ -1,39 +1,17 @@
 {
   "name": "shibefy",
   "version": "2.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "type": "module",
-  "scripts": {
-    "build": "tsc && npm run build:static",
-    "clean": "rimraf dist/",
-    "build:static": "cp -r public dist/",
-    "start": "node --experimental-specifier-resolution=node dist/index.js",
-    "watch:start": "./node_modules/.bin/env-cmd nodemon --experimental-modules --experimental-specifier-resolution=node dist/index.js",
-    "watch:compile": "nodemon --watch src --watch public -e ts,html,css --exec npm run build",
-    "watch": "npm run build && concurrently \"npm run watch:compile\" \"npm run watch:start\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^17.0.0",
-    "concurrently": "^6.5.1",
-    "env-cmd": "^10.1.0",
-    "nodemon": "^2.0.15",
-    "typescript": "^4.5.4"
-  },
+  "private": true,
   "dependencies": {
-    "axios": "^0.24.0",
-    "consolidate": "^0.16.0",
-    "express": "^4.17.2",
-    "express-session": "^1.17.2",
-    "nunjucks": "^3.2.3",
-    "passport": "^0.5.2",
-    "passport-spotify": "^2.0.0",
-    "sharp": "^0.29.3"
   },
-  "engines": {
-    "node": "14.x"
+  "scripts": {
+    "start": "cd backend && npm run start",
+    "build": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run build:prod; elif [ \"$NODE_ENV\" = \"staging\" ]; then npm run build:staging; else npm run build:dev; fi",
+    "build:dev": "cd frontend && npm i && npm run build:dev && cd ../backend && npm i && npm run build",
+    "build:staging": "cd frontend && npm i && npm run build:staging && cd ../backend && npm i && npm run build",
+    "build:prod": "cd frontend && npm i && npm run build:prod && cd ../backend && npm i && npm run build"
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0"
   }
 }
