@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { Link } from "react-router-dom";
-import { styled } from "@mui/material/styles";
+import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useAuth } from "../AuthProvider";
-
+import { getLocal, PLAYLIST_NAME_KEY, PLAYLIST_SIZE_KEY, setLocal } from "../../util/local";
 
 
 const LoginButton = styled(Button)(({ theme }) => ({
@@ -16,9 +17,24 @@ const LoginButton = styled(Button)(({ theme }) => ({
   padding: "16px 48px 18px",
 }));
 
+const HeadingTextField = styled(TextField)(({ theme }) => ({
+  display: "inline-block",
+}));
+
+const HeadingTypography = styled(Typography)(() => ({
+  lineHeight: 1.55,
+  whiteSpace: "nowrap"
+}));
+
 export const Login = () => {
+  const theme = useTheme();
   const { login } = useAuth();
+  const [playlistName, setPlaylistName] = useState(getLocal(PLAYLIST_NAME_KEY, "recently liked tracks"));
+  const [playlistSize, setPlaylistSize] = useState(getLocal(PLAYLIST_SIZE_KEY, 100));
+
   const handleClick = () => {
+    setLocal(PLAYLIST_NAME_KEY, playlistName);
+    setLocal(PLAYLIST_SIZE_KEY, playlistSize);
     login();
   };
 
@@ -38,10 +54,50 @@ export const Login = () => {
         flexFlow: "column nowrap",
         alignItems: "center",
         justifyContent: "center",
+        minWidth: "680px",
       }}>
-        <Typography sx={{ mb: 4 }}>
-          Create a playlist with your 100 most recently liked tracks.<br/>Then, shibefy it.
-        </Typography>
+        <Box sx={{ display: "flex", flexFlow: "column nowrap", alignItems: "center", mb: 4 }}>
+          <Box sx={{
+            display: "flex",
+            flexFlow: "row wrap",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: 2
+          }}>
+            <HeadingTypography sx={{ display: "inline-block" }}>
+              Update a playlist named "
+            </HeadingTypography>
+            <HeadingTextField
+              id="playlist-name"
+              inputProps={{ style: { textAlign: 'right' } }}
+              variant="standard"
+              value={playlistName}
+              sx={{ width: theme.spacing(16.25) }}
+              onChange={({ target: { value }}) => setPlaylistName(value)}
+            />
+            <HeadingTypography sx={{ display: "inline-block" }}>
+              " with your
+            </HeadingTypography>
+            <HeadingTextField
+              id="playlist-size"
+              inputProps={{ min: 1, max: 200, style: { textAlign: 'right' } }}
+              variant="standard"
+              value={playlistSize}
+              onChange={({ target: { value }}) => setPlaylistSize(value)}
+              sx={{
+                marginLeft: theme.spacing(0.5),
+                marginRight: theme.spacing(0.5),
+                width: theme.spacing(3.25)
+              }}
+            />
+            <HeadingTypography sx={{ display: "inline-block" }}>
+              most recently liked tracks.
+            </HeadingTypography>
+          </Box>
+          <HeadingTypography>
+            Then, shibefy it.
+          </HeadingTypography>
+        </Box>
 
         <LoginButton
           color="success"

@@ -1,24 +1,18 @@
 export const SPOTIFY_API = "https://api.spotify.com/v1";
 
-export const getPlaylistDuration = (playlist): string => {
-  const ms = playlist.tracks.items.reduce((acc, e) => (acc + e.track.duration_ms), 0);
-    const mins = ms / 60000;
-    const duration = { hrs: Math.floor(mins / 60), mins: Math.floor(mins % 60) };
-    return `${duration.hrs} hr ${duration.mins} min`;
-};
+const decodeHtml = (html) => {
+  var txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
 
-export const getTrackDuration = (track): string => {
-  const duration_s = track.duration_ms / 1000;
-  const mins = Math.floor(duration_s / 60);
-  const secs = Math.floor(duration_s % 60);
-  return `${mins}:${`${secs}`.padStart(2, '0')}`;
-};
+const createHeaders = (token: string, contentType: string = "application/json") => ({
+  "Authorization": `Bearer ${token}`,
+  "Content-Type": contentType
+});
 
 export const createPlaylist = async (accessToken: string, userId: string, name: string) => {
-  const headers = {
-    "Authorization": `Bearer ${accessToken}`,
-    "Content-Type": "application/json"
-  };
+  const headers = createHeaders(accessToken);
 
   const body = JSON.stringify({
     name,
@@ -29,47 +23,48 @@ export const createPlaylist = async (accessToken: string, userId: string, name: 
   return res.json();
 };
 
-export const getPlaylist = async (accessToken: string, userId: string, playlistId: string) => {
-  const headers = {
-    "Authorization": `Bearer ${accessToken}`,
-    "Content-Type": "application/json"
+export const getPlaylist = async (accessToken: string, playlistId: string) => {
+  const headers = createHeaders(accessToken);
+
+  let items: any[] = [];
+  const res = await fetch(`${SPOTIFY_API}/playlists/${playlistId}`, { headers });
+  const playlist = await res.json();
+  items.push(...playlist.tracks.items);
+
+  let next = playlist.tracks.next;
+  while (!!next) {
+    const res = await fetch(`${next}`, { headers });
+    const tracksData = await res.json();
+    next = tracksData.next;
+    items.push(...tracksData.items);
+  }
+  return {
+    ...playlist,
+    description: decodeHtml(playlist.description),
+    tracks: {
+      items
+    }
   };
-  const res = await fetch(`${SPOTIFY_API}/users/${userId}/playlists/${playlistId}`, { headers });
-  return res.json();
 };
 
 export const getPlaylists = async (accessToken: string, userId: string) => {
-  const headers = {
-    "Authorization": `Bearer ${accessToken}`,
-    "Content-Type": "application/json"
-  };
+  const headers = createHeaders(accessToken);
 
-  let remaining = 1;
-  let offset = 0;
-  const limit = 50;
+  let next = `${SPOTIFY_API}/users/${userId}/playlists`;
   const playlists: any = [];
-  while (remaining !== 0) {
-    const res = await fetch(`${SPOTIFY_API}/users/${userId}/playlists?limit=${limit}&offset=${offset}`, { headers });
+  while (next) {
+    const res = await fetch(next, { headers });
     const playlistsData = await res.json();
-    const { items, total } = playlistsData;
 
-    playlists.push(...items);
-    
-    const current = offset + limit;
-    remaining = total > current
-      ? total - current
-      : 0;
-    offset += limit;
+    playlists.push(...playlistsData.items);
+    next = playlistsData.next;
   }
 
   return playlists;
 };
 
 export const getRecentlyLikedTracks = async (accessToken: string, size) => {
-  const headers = {
-    "Authorization": `Bearer ${accessToken}`,
-    "Content-Type": "application/json"
-  };
+  const headers = createHeaders(accessToken);
 
   let remaining = 1;
   let offset = 0;
@@ -81,7 +76,7 @@ export const getRecentlyLikedTracks = async (accessToken: string, size) => {
     const { items } = tracksData;
 
     tracks.push(...items.map(({ track }) => track));
-    
+
     const current = offset + limit;
     remaining = size > current
       ? size - current
@@ -95,46 +90,58 @@ export const getRecentlyLikedTracks = async (accessToken: string, size) => {
 
 export const getPlaylistByName = async (token, userId, name) => {
   const playlists = await getPlaylists(token, userId);
-  const simple = playlists.find((playlist) => playlist.name === name);
+  const simple = playlists
+  .filter(({ owner }) => owner.id === userId)
+  .find((playlist) => playlist.name === name);
+
   if (!simple) return null;
-  return getPlaylist(token, userId, simple.id);
+  return getPlaylist(token, simple.id);
 }
 
 export const getUser = async (accessToken: string ) => {
-  const headers = {
-    "Authorization": `Bearer ${accessToken}`,
-    "Content-Type": "application/json"
-  };
+  const headers = createHeaders(accessToken);
   const res = await fetch(`${SPOTIFY_API}/me`, { headers });
   return res.json();
 };
 
-export const replacePlaylistTracks = async (accessToken: string, playlistId: string, uris) => {
-  const headers = {
-    "Authorization": `Bearer ${accessToken}`,
-    "Content-Type": "application/json"
-  };
+export const addPlaylistTracks = async (accessToken: string, playlistId: string, position: number, uris) => {
+  const headers = createHeaders(accessToken);
+  await fetch(
+    `${SPOTIFY_API}/playlists/${playlistId}/tracks`,
+    { body: JSON.stringify({ uris, position }), headers, method: "POST" }
+  );
+};
 
+export const replacePlaylistTracks = async (accessToken: string, playlistId: string, uris) => {
+  const headers = createHeaders(accessToken);
   await fetch(`${SPOTIFY_API}/playlists/${playlistId}/tracks`, { body: JSON.stringify({ uris }), headers, method: "PUT" });
 };
 
 export const putPlaylistImage = async (accessToken: string, playlistId: string, image: string) => {
-  const headers = {
-    "Authorization": `Bearer ${accessToken}`,
-    "Content-Type": "image/jpeg"
-  };
+  const headers = createHeaders(accessToken, "image/jpeg");
   await fetch( `${SPOTIFY_API}/playlists/${playlistId}/images`, { body: image, headers, method: "PUT" });
 };
 
 
 export const updatePlaylist = async (accessToken, userId, playlistId, options) => {
   const { size } = options;
+  const limit = 100;
+  let position = 0;
+  let batch = [];
 
   try {
     const tracks = await getRecentlyLikedTracks(accessToken, size);
-    await replacePlaylistTracks(accessToken, playlistId, tracks.map(({ uri }) => uri));
+    const uris = tracks.map(({ uri }) => uri);
+    await replacePlaylistTracks(accessToken, playlistId, batch);
 
-    return await getPlaylist(accessToken, userId, playlistId);
+    do {
+      batch = uris.slice(position, position + limit)
+      await addPlaylistTracks(accessToken, playlistId, position, batch);
+      position += limit;
+    }
+    while (position < size);
+
+    return await getPlaylist(accessToken, playlistId);
 
   } catch (e: any) {
     let msg = e;
