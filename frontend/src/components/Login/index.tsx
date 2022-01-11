@@ -45,6 +45,7 @@ export const Login = () => {
         flexFlow: "column nowrap",
         alignItems: "center",
         justifyContent: "center",
+        position: "relative",
         height: "100%"
       }}
     >
@@ -54,7 +55,6 @@ export const Login = () => {
         flexFlow: "column nowrap",
         alignItems: "center",
         justifyContent: "center",
-        minWidth: "680px",
       }}>
         <Box sx={{ display: "flex", flexFlow: "column nowrap", alignItems: "center", mb: 4 }}>
           <Box sx={{
@@ -111,9 +111,21 @@ export const Login = () => {
 
       </Box>
 
-        <Typography>
-          Shibes courtesy of <Link to="https://twitter.com/covoxkid">@covoxkid</Link>'s <Link to="https://shibe.online/">shibe.online</Link>
-        </Typography>
+      <Box sx={(theme) => ({
+          position: { xs: "relative", md: "fixed" },
+          bottom: { xs: 0, md: theme.spacing(1) },
+          right: { xs: 0, md: theme.spacing(2) },
+        })}
+      >
+        <a href='https://ko-fi.com/U7U119H5C' target='_blank'>
+          <img height={36} style={{ border:"0px", height:"36px" }} src='https://cdn.ko-fi.com/cdn/kofi2.png?v=3' alt='Buy Me a Coffee at ko-fi.com' />
+        </a>
+      </Box>
+
+      <Typography>
+        Shibes courtesy of <Link to="https://twitter.com/covoxkid">@covoxkid</Link>'s <Link to="https://shibe.online/">shibe.online</Link>
+      </Typography>
+
     </Container>
   )
 };

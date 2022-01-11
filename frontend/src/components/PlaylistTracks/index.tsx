@@ -9,7 +9,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 
 import { Track } from "../Track";
-import { columns, useCollapse } from "./columns";
+import { columns, collapseStyling } from "./columns";
 
 const HeadTableCell = styled(TableCell)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -23,23 +23,25 @@ const HeadTableCell = styled(TableCell)(({ theme }) => ({
   padding: theme.spacing(1)
 }));
 
-export const PlaylistTracks = ({ items }) => {
-  const collapse = useCollapse();
 
+export const PlaylistTracks = ({ items }) => {
   return (
     <TableContainer>
       <Table aria-label="playlist tracks">
         <TableHead>
           <TableRow>
             {Object.entries(columns)
-              .filter(([_, column]) => !(collapse && column.collapse))
               .map(([key, column]) => {
-                const { align, label, sx } = column;
+                const { align, collapse, label, sx } = column;
+                const collapseSx = collapseStyling(collapse, "table-cell");
                 return (
                   <HeadTableCell
                     key={key}
                     align={align}
-                    sx={sx}
+                    sx={{
+                      ...sx,
+                      ...collapseSx
+                    }}
                   >
                     {label}
                   </HeadTableCell>
@@ -51,15 +53,15 @@ export const PlaylistTracks = ({ items }) => {
           {items
             .map((playlistTrack, i) => {
               const { added_at, track } = playlistTrack;
-              const { album, artists, duration_ms, name, external_urls } = track;
+              const { album, artists, duration_ms, id, name, external_urls } = track;
               return (
                 <Track 
-                  key={i}
+                  key={id}
                   addedAt={added_at}
                   album={album}
                   artists={artists}
                   duration={duration_ms}
-                  index={i+1}
+                  index={i + 1}
                   name={name}
                   url={external_urls.spotify}
                 />

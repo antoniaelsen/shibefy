@@ -25,12 +25,22 @@ export const PlaylistMeta = ({ img, playlist, user }) => {
     <Box sx={{
         p: 4,
         display: "flex",
-        alignItems: "flex-end",
+        flexFlow: {
+          xs: "column nowrap",
+          sm: "row" 
+        },
+        alignItems: {
+          xs: "center",
+          sm: "flex-end"
+        },
         position: "relative",
         background: "linear-gradient(0deg, #121212 0%, rgba(60,60,60,1) 100%)",
       }}
     >
-      <Box sx={{ mr: 4 }}>
+      <Box sx={{
+          mr: { xs: 0, sm: 4 },
+          mb: { xs: 4, sm: 0 } 
+        }}>
         <img src={img} alt="A shibe" width={300} height={300} />
       </Box>
 
