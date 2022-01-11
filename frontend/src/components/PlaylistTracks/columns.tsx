@@ -1,29 +1,35 @@
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { TableCellProps } from "@mui/material/TableCell";
 
 export interface Column {
   label: any;
   align?: TableCellProps["align"];
-  collapse?: boolean;
+  collapse?: string;
   sx?: any;
 }
 
 export const columns: { [key: string]: Column } = {
-  index: { label: '#', align: "center", sx: { width: 24 } },
+  index: { label: '#', align: "center", sx: { width: { "xs": "16px", "sm": "24px" } } },
   title: { label: 'TITLE' },
   album: { label: 'ALBUM' },
   dateAdded: {
     label: 'DATE ADDED',
-    collapse: true,
+    collapse: "md",
   },
   duration: {
     label: "",
-    align: "right"
+    align: "right",
+    collapse: "sm",
   },
 };
 
-export const useCollapse = () => {
-  const theme = useTheme();
-  return useMediaQuery(theme.breakpoints.down('md'));
-};
+const breakpoints = ['xs', 'sm', 'md', 'lg', 'xl'];
+export const collapseStyling = (target, display) => ({
+  display: {
+    ...breakpoints.reduce((acc, breakpoint, i) => {
+      return {
+        ...acc, 
+        [breakpoint]: breakpoints.indexOf(target) < i ? display : "none"
+      };
+    }, {})
+  }
+});

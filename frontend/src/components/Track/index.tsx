@@ -7,7 +7,7 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 
-import { columns, useCollapse } from "../PlaylistTracks/columns";
+import { columns, collapseStyling } from "../PlaylistTracks/columns";
 
 import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en.json'
@@ -53,7 +53,6 @@ interface TrackProps {
 
 export const Track = (props: TrackProps) => {
   const { addedAt, album, artists, duration, index, name, url } = props;
-  const collapse = useCollapse();
 
   return (
     <Row hover tabIndex={-1}>
@@ -105,13 +104,17 @@ export const Track = (props: TrackProps) => {
         </Link>
       </Cell>
 
-      {!collapse && (
-        <Cell align={columns.dateAdded.align}>
-          <Typography color="textSecondary">{addedAtToDateAdded(addedAt)}</Typography>
-        </Cell>
-      )}
+      <Cell
+        align={columns.dateAdded.align}
+        sx={collapseStyling(columns.dateAdded.collapse, "table-cell")}
+      >
+        <Typography color="textSecondary">{addedAtToDateAdded(addedAt)}</Typography>
+      </Cell>
 
-      <Cell align={columns.duration.align}>
+      <Cell
+        align={columns.duration.align}
+        sx={collapseStyling(columns.duration.collapse, "table-cell")}
+      >
         <Typography color="textSecondary">{durationMsToHrsMins(duration)}</Typography>
       </Cell>
     </Row>
