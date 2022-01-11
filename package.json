@@ -6,7 +6,10 @@
   },
   "scripts": {
     "start": "cd backend && npm run start",
-    "build": "cd frontend && npm i && npm run build && cd ../backend && npm i && npm run build"
+    "build": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run build:prod; elif [ \"$NODE_ENV\" = \"staging\" ]; then npm run build:staging; else npm run build:dev; fi",
+    "build:dev": "cd frontend && npm i && npm run build:dev && cd ../backend && npm i && npm run build",
+    "build:staging": "cd frontend && npm i && npm run build:staging && cd ../backend && npm i && npm run build",
+    "build:prod": "cd frontend && npm i && npm run build:prod && cd ../backend && npm i && npm run build"
   },
   "devDependencies": {
     "env-cmd": "^10.1.0"
