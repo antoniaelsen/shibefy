@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response, Router } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import http from 'http';
+import https from 'https';
 import session from 'express-session';
 import passport from 'passport';
 import config from './config';
@@ -16,6 +17,7 @@ const __dirname = dirname(__filename);
  
 
 // TODO(aelsen): no implicit any
+// TODO(aelsen): db
 
 const configurePassport = () => {
   // Passport session setup.
@@ -73,12 +75,17 @@ const createServer = () => {
   app.get('*', (req, res) => {
     res.sendFile('index.html', { root: path.join(__dirname, '../../frontend/build/') });
   });
+
+  if (process.env.NODE_ENV === "" || process.env.NODE_ENV === "development") {
+    const httpsServer = https.createServer(credentials, app);
+    return httpsServer;
+  }
   
   const httpServer = http.createServer(app);
   return httpServer;
 }
  
-logger.info(`Launching shibefy backend (${process.env.NODE_ENV || "development"})`);
+logger.info(`Launching shibefy backend (${process.env.NODE_ENV || "no env"})`);
 
 const app = createServer();
 const port = process.env.PORT || 8888;
