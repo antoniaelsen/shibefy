@@ -59,7 +59,7 @@ export const PlaylistTracks = ({ items }) => {
                   album={album}
                   artists={artists}
                   duration={duration_ms}
-                  index={i}
+                  index={i+1}
                   name={name}
                   url={external_urls.spotify}
                 />
