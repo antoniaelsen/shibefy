@@ -1,15 +1,22 @@
 import React, { useState } from "react";
 
-import { Link } from "react-router-dom";
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import Link from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useAuth } from "../AuthProvider";
 import { getLocal, PLAYLIST_NAME_KEY, PLAYLIST_SIZE_KEY, setLocal } from "../../util/local";
 
+
+const FooterLink = styled(Link)(({ theme }) => ({
+  textDecoration: "none",
+  "&:hover": {
+    textDecoration: "underline",
+  }
+}));
 
 const LoginButton = styled(Button)(({ theme }) => ({
   borderRadius: "500px",
@@ -65,7 +72,7 @@ export const Login = () => {
             mb: 2
           }}>
             <HeadingTypography sx={{ display: "inline-block" }}>
-              Update a playlist named "
+              Update a spotify playlist named "
             </HeadingTypography>
             <HeadingTextField
               id="playlist-name"
@@ -122,9 +129,16 @@ export const Login = () => {
         </a>
       </Box>
 
-      <Typography>
-        Shibes courtesy of <Link to="https://twitter.com/covoxkid">@covoxkid</Link>'s <Link to="https://shibe.online/">shibe.online</Link>
-      </Typography>
+
+      <Box sx={{ display: "flex" }}>
+        <FooterLink href="https://github.com/haebou/shibefy">source</FooterLink>
+        <Typography sx={{ mx: 1 }}>
+        •
+        </Typography>
+        <Typography>
+          shibes courtesy of <FooterLink href="https://twitter.com/covoxkid">@covoxkid</FooterLink>'s <FooterLink href="https://shibe.online/">shibe.online</FooterLink>
+        </Typography>
+      </Box>
 
     </Container>
   )

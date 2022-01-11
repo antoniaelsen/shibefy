@@ -11,7 +11,7 @@ import { PlaylistPage } from '../PlaylistPage';
 import { useAuth } from '../AuthProvider';
 
 
-function RequireAuth({ children }) {
+function RequireAuth(props) {
   let auth = useAuth();
   let location = useLocation();
 
@@ -19,7 +19,7 @@ function RequireAuth({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return props.children;
 }
 
 
