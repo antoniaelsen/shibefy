@@ -24,8 +24,8 @@ All environment variables are stored in .env files, with the exception of secret
 Backend  
 
 - [ ] tests
-- [ ] remove sessions
 - [ ] handle auth failure
+- [ ] remove sessions
 - [ ] update TS config, disallow implicit any
 
 
@@ -38,3 +38,21 @@ Frontend
 - [ ] add border radius to playlist track (table row)
 - [ ] add white text on track hover
 - [ ] TS cleanup
+
+
+## Future
+
+- [ ] shibefy as a service - automatic periodic updates
+  - backend
+    - [ ] add db
+    - [ ] reimpl sessions (correctly)
+    - [ ] store users who enroll in db (and their config)
+    - [ ] add process for periodic updates
+  - frontend
+    - [ ] display option for signup
+    - [ ] display option for cancellation if already enrolled
+- [ ] shibe config
+  - frontend
+    - [ ] make shibe optional
+    - [ ] add other options
+    - [ ] add desc config
