@@ -22,7 +22,7 @@ export const createPlaylist = async (accessToken: string, userId: string, name: 
 
   const body = JSON.stringify({
     name,
-    description: "your recently liked bananas",
+    description: "https://shibefy.com",
     public: true
   });
   const res = await fetch(`${SPOTIFY_API}/users/${userId}/playlists`, { method: "POST", body, headers });
