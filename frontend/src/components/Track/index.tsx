@@ -35,7 +35,10 @@ const Cell = styled(TableCell)(({ theme }) => ({
 }));
 
 const Row = styled(TableRow)(() => ({
-  borderRadius: "3px",
+  "&:first-child td:first-child": { borderTopLeftRadius: "3px" },
+  "&:first-child td:last-child": { borderTopRightRadius: "3px" },
+  "&:last-child td:first-child": { borderBottomLeftRadius: "3px" },
+  "&:last-child td:last-child": { borderBottomRightRadius: "3px" },
 }));
 
 interface TrackProps {

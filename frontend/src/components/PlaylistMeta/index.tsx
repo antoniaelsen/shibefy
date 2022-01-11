@@ -22,7 +22,14 @@ export const PlaylistMeta = ({ img, playlist, user }) => {
   const { hours, mins } = getPlaylistDuration(playlist);
 
   return (
-    <Box sx={{ p: 4, display: "flex", alignItems: "flex-end", position: "relative" }}>
+    <Box sx={{
+        p: 4,
+        display: "flex",
+        alignItems: "flex-end",
+        position: "relative",
+        background: "linear-gradient(0deg, #121212 0%, rgba(60,60,60,1) 100%)",
+      }}
+    >
       <Box sx={{ mr: 4 }}>
         <img src={img} alt="A shibe" width={300} height={300} />
       </Box>
