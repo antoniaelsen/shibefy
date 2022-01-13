@@ -35,7 +35,7 @@ const HeadingTypography = styled(Typography)(() => ({
 
 export const Login = () => {
   const theme = useTheme();
-  const { login } = useAuth();
+  const { error, login } = useAuth();
   const [playlistName, setPlaylistName] = useState(getLocal(PLAYLIST_NAME_KEY, "recently liked tracks"));
   const [playlistSize, setPlaylistSize] = useState(getLocal(PLAYLIST_SIZE_KEY, 100));
 
@@ -61,8 +61,9 @@ export const Login = () => {
         flex: "1 1 auto",
         flexFlow: "column nowrap",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
       }}>
+        <Box sx={{ height: "40%" }}/>
         <Box sx={{ display: "flex", flexFlow: "column nowrap", alignItems: "center", mb: 4 }}>
           <Box sx={{
             display: "flex",
@@ -115,6 +116,22 @@ export const Login = () => {
         >
           <Typography variant="button">Login with Spotify</Typography>
         </LoginButton>
+
+        {error && (
+          <>
+            <HeadingTypography color="error" sx={{ mt: 4 }}>
+            {`Error: ${error}.`}
+            </HeadingTypography>
+            <Box sx={{ display: "flex", mt: 1, alignItems: "center", justifyContent: "center" }}>
+              <HeadingTypography color="error">
+              {`Please email`}
+              </HeadingTypography>
+              <Link color="error" underline="hover" sx={{ ml: 0.5 }} href="mailto:support@shibefy.com">
+              {`support@shibefy.com`}
+              </Link>
+            </Box>
+          </>
+        )}
 
       </Box>
 

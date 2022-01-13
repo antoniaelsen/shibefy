@@ -8,7 +8,7 @@ import passport from 'passport';
 import config from './config';
 import createAuthMiddleware from './auth';
 import createImageMiddleware from './image';
-import { logger } from "./util/logger";
+import { logger as rootLogger } from "./util/logger";
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 
@@ -37,6 +37,7 @@ const configurePassport = () => {
 };
 
 const createServer = () => {
+  const logger = rootLogger.child({ labels: ["express"] });
   const privateKey  = fs.readFileSync('ssl/localhost-key.pem', 'utf8');
   const certificate = fs.readFileSync('ssl/localhost.pem', 'utf8');
   const credentials = { key: privateKey, cert: certificate };
@@ -60,7 +61,7 @@ const createServer = () => {
 
   // Middleware - Log
   app.use((req: Request, res: Response, next: NextFunction) => {
-    logger.info(`[${req.method}] "${req.path}"${req.xhr ? ' XHR' : ''}`,
+    logger.debug(`[${req.method}] "${req.path}"${req.xhr ? ' XHR' : ''}`,
       `from "${req.headers.referer}" (${req.get('Origin')})`)
     next();
   });
@@ -85,10 +86,10 @@ const createServer = () => {
   return httpServer;
 }
  
-logger.info(`Launching shibefy backend (${process.env.NODE_ENV || "no env"})`);
+rootLogger.info(`Launching shibefy backend (${process.env.NODE_ENV || "no env"})`);
 
 const app = createServer();
 const port = process.env.PORT || 8888;
 
-logger.info(`Service launched, listening on port ${port}`);
+rootLogger.info(`Service launched, listening on port ${port}`);
 app.listen(port);
