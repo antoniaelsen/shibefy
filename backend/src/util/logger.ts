@@ -1,4 +1,5 @@
 import winston from "winston";
+import 'winston-daily-rotate-file';
 
 const LOG_LEVEL_LIMIT = 12;
 const format = winston.format.printf((meta) => {
@@ -23,6 +24,11 @@ export const logger = winston.createLogger({
   level: process.env.NODE_ENV === "production" ? "info" : "debug",
   transports: [
     new winston.transports.Console(),
-    new winston.transports.File({ filename: 'output.log' })
+    new (winston.transports as any).DailyRotateFile({
+      filename: 'output-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      level: 'info',
+      maxFiles: 10,
+   })
   ], 
 });
