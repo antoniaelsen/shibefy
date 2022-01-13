@@ -1,6 +1,6 @@
 {
   "name": "shibefy",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "private": true,
   "scripts": {
     "start": "cd backend && npm run start",

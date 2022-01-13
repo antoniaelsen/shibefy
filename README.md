@@ -24,8 +24,7 @@ All environment variables are stored in .env files, with the exception of secret
 Backend  
 
 - [ ] tests
-- [ ] handle auth failure
-- [ ] remove sessions
+- [X] handle auth failure
 - [ ] update TS config, disallow implicit any
 
 
