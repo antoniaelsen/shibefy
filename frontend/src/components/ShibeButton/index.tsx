@@ -1,8 +1,5 @@
-import React from "react";
-
-import { keyframes, styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
-
+import { keyframes, styled } from "@mui/material/styles";
 
 const rainbow = keyframes`
   100%, 0% {
@@ -44,10 +41,14 @@ const rainbow = keyframes`
 `
 
 export const ShibeButton = styled(Button)(({ theme }) => ({
-  backgroundColor: theme.palette.common.white,
   color: theme.palette.common.black,
+  animation: `${rainbow} 2.5s linear`,
+  animationIterationCount: "infinite",
   "&:hover": {
-    animation: `${rainbow} 2.5s linear`,
-    animationIterationCount: "infinite",
+    backgroundColor: theme.palette.common.white,
+    animation: 'none',
+  },
+  "&.Mui-disabled": {
+    color: theme.palette.grey[500],
   },
 }));

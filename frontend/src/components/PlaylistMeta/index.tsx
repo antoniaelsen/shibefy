@@ -1,8 +1,9 @@
 import React from "react";
-
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
+import { styled } from "@mui/material/styles";
+import { useTheme } from "@mui/system";
 
 const getPlaylistDuration = (playlist) => {
   const { items } = playlist.tracks;
@@ -16,6 +17,12 @@ const getPlaylistDuration = (playlist) => {
   const mins = Math.floor(totalDurationMins % 60);
   return { hours, mins };
 }
+
+const TitleLink = styled(Link)(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '48px',
+  }
+}));
 
 export const PlaylistMeta = ({ img, playlist, user }) => {
   const items = playlist.tracks.items;
@@ -46,14 +53,14 @@ export const PlaylistMeta = ({ img, playlist, user }) => {
 
       <Box>
         <Typography component="h1" variant="h2">PLAYLIST</Typography>
-        <Link
+        <TitleLink
           href={playlist.external_urls.spotify}
           color="textPrimary"
           variant="h1"
           underline="none"
         >
             {playlist.name}
-          </Link>
+          </TitleLink>
         <Typography color="textSecondary" sx={{ mt: 1 }}>{playlist.description}</Typography>
 
         <Box sx={{ mt: 1 }}>

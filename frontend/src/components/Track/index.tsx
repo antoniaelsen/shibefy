@@ -2,7 +2,7 @@ import React from "react";
 
 import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
-import Link from "@mui/material/Link";
+import MuiLink from "@mui/material/Link";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
@@ -14,9 +14,6 @@ import en from 'javascript-time-ago/locale/en.json'
 TimeAgo.addDefaultLocale(en)
 const timeAgo = new TimeAgo('en-US')
 
-// TODO(aelsen)
-// - hover turns album and artist text white
-// - border radius on rows
 
 const addedAtToDateAdded = (addedAt: string): string => {
   return timeAgo.format(Date.parse(addedAt)) as string;
@@ -31,7 +28,16 @@ const durationMsToHrsMins = (durationMs: number): string => {
 
 const Cell = styled(TableCell)(({ theme }) => ({
   borderBottom: "none",
-  padding: `${theme.spacing(1)} ${theme.spacing(2)}`
+  padding: `${theme.spacing(1)} ${theme.spacing(2)}`,
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1),
+  }
+}));
+
+const Link = styled(MuiLink)(({ theme }) => ({
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  // whiteSpace: "nowrap"
 }));
 
 const Row = styled(TableRow)(() => ({
@@ -60,9 +66,9 @@ export const Track = (props: TrackProps) => {
         <Typography color="textSecondary">{index}</Typography>
       </Cell>
 
-      <Cell align={columns.title.align} sx={{ display: "flex" }}>
+      <Cell align={columns.title.align} sx={{ display: "flex", alignItems: "center" }}>
         <img src={album.images?.[0]?.url} alt="album artwork" height={40} width={40}/>
-        <Box sx={{ pl: 2 }}>
+        <Box sx={{ pl: 2, minWidth: 0 }}>
           <Link
             href={url}
             color="textPrimary"
@@ -71,7 +77,7 @@ export const Track = (props: TrackProps) => {
           >
             {name}
           </Link>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             {artists.map((artist, i) => {
               return (
               <React.Fragment key={artist.name}>

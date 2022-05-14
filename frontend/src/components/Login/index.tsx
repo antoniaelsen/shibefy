@@ -152,7 +152,7 @@ export const Login = () => {
         <Typography sx={{ mx: 1 }}>
         •
         </Typography>
-        <Typography>
+        <Typography sx={{ whiteSpace: "nowrap" }}>
           shibes courtesy of <FooterLink href="https://twitter.com/covoxkid">@covoxkid</FooterLink>'s <FooterLink href="https://shibe.online/">shibe.online</FooterLink>
         </Typography>
       </Box>
