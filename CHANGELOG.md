@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2022-05-14
+
+### Added
+- Reverse proxy for spotify API calls
+
+### Fixed
+- Button styling, track text styling
+
+### Removed
+- Access token fetching in frontend -- for security
+
 ## [2.3.0] - 2021-11-12
 
 ### Added
