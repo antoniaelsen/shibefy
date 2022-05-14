@@ -56,7 +56,7 @@ const createServer = () => {
     // maxAge:,
     // path:,
     sameSite: "lax",
-    secure: true,
+    secure: false,
   };
   app.use(
     session({
