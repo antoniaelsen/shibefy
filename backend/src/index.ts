@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response, Router } from 'express';
+import express, { CookieOptions, NextFunction, Request, Response, Router } from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import http from 'http';
@@ -8,6 +8,7 @@ import passport from 'passport';
 import config from './config';
 import createAuthMiddleware from './auth';
 import createImageMiddleware from './image';
+import createReverseProxyMiddleware from './reverse-proxy';
 import { logger as rootLogger } from "./util/logger";
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
@@ -15,9 +16,6 @@ import path, { dirname } from 'path';
 const __filename = fileURLToPath((import.meta as any).url);
 const __dirname = dirname(__filename);
  
-
-// TODO(aelsen): no implicit any
-// TODO(aelsen): db
 
 const configurePassport = () => {
   // Passport session setup.
@@ -41,16 +39,31 @@ const createServer = () => {
   const privateKey  = fs.readFileSync('ssl/localhost-key.pem', 'utf8');
   const certificate = fs.readFileSync('ssl/localhost.pem', 'utf8');
   const credentials = { key: privateKey, cert: certificate };
+  const corsOptions = {
+    credentials: true,
+    origin: `https://${config.frontendDomain}`,
+  };
+
 
   const app = express();
-  app.use(cors());
-  
+  app.use(cors(corsOptions));
+
+
   // Configure user sessions
+  const cookieParams: CookieOptions = {
+    // domain:,
+    httpOnly: true,
+    // maxAge:,
+    // path:,
+    sameSite: "lax",
+    secure: true,
+  };
   app.use(
     session({
+      cookie: cookieParams,
       secret: config.sessionSecret,
       resave: true,
-      saveUninitialized: true,
+      saveUninitialized: false,
     })
   );
 
@@ -61,7 +74,7 @@ const createServer = () => {
 
   // Middleware - Log
   app.use((req: Request, res: Response, next: NextFunction) => {
-    logger.debug(`[${req.method}] "${req.path}"${req.xhr ? ' XHR' : ''}`,
+    logger.debug(`[${(req as any).sessionID}] [${req.method}] "${req.path}"${req.xhr ? ' XHR' : ''}`,
       `from "${req.headers.referer}" (${req.get('Origin')})`)
     next();
   });
@@ -69,6 +82,7 @@ const createServer = () => {
   
   const router = Router();
   router.use("/auth", createAuthMiddleware());
+  router.use("/rproxy", createReverseProxyMiddleware());
   router.use("/shibe", createImageMiddleware());
   app.use("/api", router);
 
@@ -77,7 +91,7 @@ const createServer = () => {
     res.sendFile('index.html', { root: path.join(__dirname, '../../frontend/build/') });
   });
 
-  if (process.env.NODE_ENV === "" || process.env.NODE_ENV === "development") {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
     const httpsServer = https.createServer(credentials, app);
     return httpsServer;
   }

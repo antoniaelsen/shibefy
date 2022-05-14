@@ -5,13 +5,13 @@ import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import { useAuth } from "../AuthProvider";
 import { PlaylistMeta } from "../PlaylistMeta";
 import { PlaylistTracks } from "../PlaylistTracks";
 import { ShibeButton } from "../ShibeButton";
 import { createPlaylist, getPlaylistByName, getUser, putPlaylistImage, updatePlaylist } from "../../util/spotify";
 import { getLocal, PLAYLIST_NAME_KEY, PLAYLIST_SIZE_KEY } from "../../util/local";
 import { getShibe } from "./util";
+import { useAuth } from "../AuthProvider";
 
 
 const PlaylistContainer = styled(Box)(({ theme }) => ({
@@ -24,7 +24,6 @@ const PlaylistContainer = styled(Box)(({ theme }) => ({
 }))
 
 export const PlaylistPage = () => {
-  const { token } = useAuth();
   const [state, setState] = useState<any>({
     img: null,
     imgLoading: false,
@@ -32,36 +31,46 @@ export const PlaylistPage = () => {
     playlist: null,
     user: null,
   });
+  const { logout } = useAuth();
   const { loading, img, imgLoading, playlist, user } = state;
   const playlistId = playlist?.id;
 
   const updateImage = useCallback(async (playlistId) => {
-    if (!token || !playlistId) return;
+    if (!playlistId) return;
     setState((prevState) => ({
       ...prevState,
       imgLoading: true,
     }));
     const src = await getShibe();
-    await putPlaylistImage(token, playlistId, src);
+    await putPlaylistImage(playlistId, src);
     setState((prevState) => ({
       ...prevState,
       img: `${"data:image/jpeg;base64,"}${src}`,
       imgLoading: false,
     }));
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (!token) return;
-  
     (async () => {
       const name = getLocal(PLAYLIST_NAME_KEY, "recently liked tracks");
       const size = getLocal(PLAYLIST_SIZE_KEY, 100);
 
-      const user = await getUser(token);
+      let user;
+      try {
+        user = await getUser();
+        if(user.error?.status === 401) {
+          logout();
+          return;
+        }
+      } catch (e) {
+        logout();
+        return;
+      }
+
       let playlist: any = null;
-      playlist = await getPlaylistByName(token, user.id, name);
+      playlist = await getPlaylistByName(user.id, name);
       if (!playlist) {
-        playlist = await createPlaylist(token, user.id, name);
+        playlist = await createPlaylist(user.id, name);
       }
       
       setState({
@@ -71,7 +80,7 @@ export const PlaylistPage = () => {
         user,
       });
 
-      playlist = await updatePlaylist(token, user.id, playlist.id, { size });
+      playlist = await updatePlaylist(user.id, playlist.id, { size });
       await updateImage(playlist.id);
 
       setState({
@@ -81,7 +90,7 @@ export const PlaylistPage = () => {
         user,
       });
     })();
-  }, [token, updateImage]);
+  }, [updateImage]);
 
   return (
     <Box>

@@ -1,8 +1,10 @@
-import { NextFunction, Request, Response, Router } from 'express';
+import { CookieOptions, NextFunction, Response, Router } from 'express';
 import passport from 'passport';
 import { Strategy as SpotifyStrategy } from "passport-spotify";
-import config from "./config";
 import { URLSearchParams } from 'url';
+
+import { Request } from './types/Request';
+import config from "./config";
 import { logger as rootLogger } from './util/logger';
  
 
@@ -16,6 +18,16 @@ const scope = [
 
 const createAuthMiddleware = () => {
   const logger = rootLogger.child({ labels: ["auth"] });
+
+  const cookieParams: CookieOptions = {
+    // domain:,
+    httpOnly: true,
+    // maxAge:,
+    // path:,
+    sameSite: "lax",
+    secure: true,
+  };
+
   const saveReturnTo = (req: Request, res: Response, next: NextFunction) => {
     if (req.query && req.query.returnTo) {
       const url = (req.query.returnTo as string);
@@ -24,9 +36,17 @@ const createAuthMiddleware = () => {
     }
     return next();
   };
+
+  const setAuthStateCookie = (req: Request, res: Response) => {
+    const authState = {
+      isLoggedIn: !!req.user,
+    };
+  
+    res.cookie("shibefy-auth", JSON.stringify(authState), { ...cookieParams, httpOnly: false });
+  };
  
   const redirectWithError = (req, res) => {
-    const defaultUrl = `https://${config.redirectDomain}`;
+    const defaultUrl = `https://${config.frontendDomain}`;
     const returnTo = (req as any).session.returnTo || defaultUrl;
     const error = req.session.error;
     logger.info(`Redirecting with error: ${JSON.stringify(error)} to ${returnTo}`);
@@ -37,40 +57,40 @@ const createAuthMiddleware = () => {
     return res.redirect(returnParams);
   };
  
-  const redirectWithToken = (req, res) => {
-    const defaultUrl = `https://${config.redirectDomain}`;
+  const redirectToReturnTo = (req: Request, res: Response) => {
+    const defaultUrl = `https://${config.frontendDomain}/`;
     const returnTo = (req as any).session.returnTo || defaultUrl;
-    
-    if (!req.user) {
-      logger.warning(`Redirecting without token to ${returnTo}`);
-      return res.redirect(returnTo);
-    }
-    const token = req.user.auth?.accessToken;
-    if (!token) {
-      logger.warning(`Redirecting without token to ${returnTo}`);
-      return res.redirect(returnTo);
-    }
-    
-    const params = new URLSearchParams({ access_token: token });
-    const returnParams = `${returnTo}?${params.toString()}`;
-    
-    logger.debug(`Redirecting with token to ${returnTo}`);
-    return res.redirect(returnParams);
+    setAuthStateCookie(req, res);
+
+    return res.redirect(returnTo);
+  };
+
+  const params = {
+    clientID: config.clientID,
+    clientSecret: config.clientSecret,
+    callbackURL: `https://${config.backendDomain}/auth/spotify/callback`,
+    passReqToCallback: true
+  }
+
+  const verifyCallback = (req, accessToken, refreshToken, expires_in, profile, done, ) => {
+    const { id, displayName } = profile;
+    logger.info(`Authenticated user [${id}] "${displayName}"`);
+
+    // TODO(aelsen): verify?
+    const user = {
+      id,
+      tokens: {
+        accessToken,
+        refreshToken
+      }
+    };
+    return done(null, user);
   };
 
   passport.use(
     new SpotifyStrategy(
-      {
-        clientID: config.clientID,
-        clientSecret: config.clientSecret,
-        callbackURL: `https://${config.callbackDomain}/auth/spotify/callback`,
-        passReqToCallback: true
-      },
-      (_req, accessToken, refreshToken, expires_in, profile, done, ) => {
-        const { id, displayName } = profile;
-        logger.info(`Authenticated user [${id}] "${displayName}"`);
-        return done(null, { ...profile, auth: { accessToken, refreshToken, expires_in } });
-      }
+      params,
+      verifyCallback
     )
   );
 
@@ -106,7 +126,7 @@ const createAuthMiddleware = () => {
     '/spotify/callback',
     authenticate,
     errorHandler,
-    redirectWithToken
+    redirectToReturnTo
   );
   
   return router;

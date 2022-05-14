@@ -8,5 +8,8 @@
     "build:dev": "cd frontend && npm i && npm run build:dev && cd ../backend && npm i && npm run build",
     "build:staging": "cd frontend && npm i && npm run build:staging && cd ../backend && npm i && npm run build",
     "build:prod": "cd frontend && npm i && npm run build:prod && cd ../backend && npm i && npm run build"
+  },
+  "dependencies": {
+    "express-http-proxy": "^1.6.3"
   }
 }

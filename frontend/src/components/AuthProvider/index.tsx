@@ -1,20 +1,22 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import cookies from "js-cookie";
 import config from "../../config";
 
+const COOKIE_KEY_AUTH_STATE = "shibefy-auth";
 
 interface IAuthContext {
   isAuthenticated: boolean;
   error: string | null;
-  token: string | null;
   login(): Promise<void>
+  logout(): Promise<void>
 }
 
 const AuthContext = React.createContext<IAuthContext>({
   isAuthenticated: false,
   error: null,
-  token: null,
   login: async () => {},
+  logout: async () => {},
 });
 
 export const useAuth = () => {
@@ -29,7 +31,6 @@ export const useQuery = () => {
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const params = useQuery();
 
@@ -40,21 +41,28 @@ export const AuthProvider = ({ children }) => {
     const url = `https://${config.backendDomain}/auth/spotify?returnTo=${loc}`;
     window.location.href = url; 
   }, []);
+
+  const logout = useCallback(async () => {
+    cookies.remove(COOKIE_KEY_AUTH_STATE);
+    setIsAuthenticated(false);
+    navigate("/");
+  }, [navigate]);
   
 
   useEffect(() => {
-    const token = params.get("access_token");
     const error = params.get("error");
-
     if (error) {
       const decoded = decodeURIComponent(error);
       setError(decoded);
       navigate("/");
     }
-
-    if (token) {
+    
+    const cookie = cookies.get(COOKIE_KEY_AUTH_STATE);
+    if (!cookie) return;
+    
+    const { isLoggedIn } = JSON.parse(cookie);
+    if (isLoggedIn) {
       setIsAuthenticated(true);
-      setToken(token);
       navigate("/");
     }
 
@@ -65,7 +73,7 @@ export const AuthProvider = ({ children }) => {
       error,
       isAuthenticated,
       login,
-      token,
+      logout
     }}>
       {children}
     </AuthContext.Provider>

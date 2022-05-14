@@ -15,7 +15,7 @@ function RequireAuth(props) {
   let auth = useAuth();
   let location = useLocation();
 
-  if (!auth.token) {
+  if (!auth.isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
