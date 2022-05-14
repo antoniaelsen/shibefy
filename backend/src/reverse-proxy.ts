@@ -4,6 +4,7 @@ import ExpressHttpProxy from 'express-http-proxy';
 import config from "./config";
 import { logger as rootLogger } from './util/logger';
 
+
 const services = [
   { service: "spotify", url: "https://api.spotify.com/v1" }
 ];
@@ -31,10 +32,6 @@ const createReverseProxy = (service: string, url: string, { config, logger: root
       "Access-Control-Allow-Origin": `https://${config.frontendDomain}`
     };
   };
-
-  const userResDecorator = (proxyRes, proxyResData, userReq, userRes) => {
-    return proxyResData;
-  }
 
   return ExpressHttpProxy(url, { proxyReqOptDecorator, userResHeaderDecorator });
 };

@@ -3,6 +3,7 @@ import config from "../config";
 export const SPOTIFY_API = "https://api.spotify.com/v1";
 export const PROXY_API = `https://${config.backendDomain}/rproxy/spotify/v1`;
 
+
 const decodeHtml = (html) => {
   var txt = document.createElement("textarea");
   txt.innerHTML = html;
