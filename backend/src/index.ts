@@ -37,9 +37,6 @@ const configurePassport = () => {
 
 const createServer = () => {
   const logger = rootLogger.child({ labels: ["express"] });
-  const privateKey  = fs.readFileSync('ssl/localhost-key.pem', 'utf8');
-  const certificate = fs.readFileSync('ssl/localhost.pem', 'utf8');
-  const credentials = { key: privateKey, cert: certificate };
   const corsOptions = {
     credentials: true,
     origin: `https://${config.frontendDomain}`,
@@ -93,6 +90,10 @@ const createServer = () => {
   });
 
   if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
+    const privateKey  = fs.readFileSync('ssl/localhost-key.pem', 'utf8');
+    const certificate = fs.readFileSync('ssl/localhost.pem', 'utf8');
+    const credentials = { key: privateKey, cert: certificate };
+
     const httpsServer = https.createServer(credentials, app);
     return httpsServer;
   }
