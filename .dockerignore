@@ -1,0 +1,16 @@
+# Docker
+Dockerfile
+.dockerignore
+
+# Git
+.git
+
+# App
+**/node_modules
+**/ssl
+
+**/.secret
+**/.local
+**/.staging
+
+**/output*.log
