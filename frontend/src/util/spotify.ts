@@ -60,7 +60,8 @@ export const getPlaylist = async (playlistId: string) => {
 export const getPlaylists = async (userId: string) => {
   const params = requestParams();
 
-  let next = `${PROXY_API}/users/${userId}/playlists`;
+  const limit = 50;
+  let next = `${PROXY_API}/users/${userId}/playlists?limit=${limit}`;
   const playlists: any = [];
   while (next) {
     const res = await fetch(proxy(next), params);

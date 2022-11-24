@@ -16,6 +16,8 @@ import path, { dirname } from 'path';
 
 const __filename = fileURLToPath((import.meta as any).url);
 const __dirname = dirname(__filename);
+
+const use_ssl = !process.env.NODE_ENV || process.env.NODE_ENV === "development" || process.env.USE_SSL;
  
 
 const configurePassport = () => {
@@ -89,7 +91,7 @@ const createServer = () => {
     res.sendFile('index.html', { root: path.join(__dirname, '../../frontend/build/') });
   });
 
-  if (!process.env.NODE_ENV || process.env.NODE_ENV === "development") {
+  if (use_ssl) {
     const privateKey  = fs.readFileSync('ssl/localhost-key.pem', 'utf8');
     const certificate = fs.readFileSync('ssl/localhost.pem', 'utf8');
     const credentials = { key: privateKey, cert: certificate };
@@ -102,10 +104,10 @@ const createServer = () => {
   return httpServer;
 }
  
-rootLogger.info(`Launching shibefy backend (${process.env.NODE_ENV || "no env"})`);
+rootLogger.info(`Launching shibefy backend (${process.env.NODE_ENV || "no env"}${use_ssl ? ", using SSL" : ""})`);
 
 const app = createServer();
-const port = process.env.PORT || 8888;
+const port = process.env.PORT || 8080;
 
 rootLogger.info(`Service launched, listening on port ${port}`);
 app.listen(port);
